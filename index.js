@@ -2,6 +2,10 @@ const canvasWidth = 600;
 const canvasHeight = 600;
 const squareHeight = 20;
 
+function debug(text){
+    document.getElementById("debug").textContent=text;
+}
+
 function draw(snake, apple) {
     const canvas = document.getElementById("canvas");
     canvas.style.height = canvasHeight;
@@ -39,13 +43,17 @@ function draw(snake, apple) {
     }
 }
 
+
+const auto=true;
+var autoPath=[];
+
 var direction=1; //0=up, 1=down, 2=left, 3=right
 var game=true;
 var snake=[[10,10]]
 var apple=[15,15]
 var appleEat=false;
-var speed=60; //inverse scale - lower number = faster speed
-var scaleFactor=3; //how many ends the snake gets lol
+var speed=25; //inverse scale - lower number = faster speed
+var scaleFactor=3; //how many ends the snake gets
 
 window.addEventListener("load", draw(snake, apple));
 var start=Date.now();
@@ -54,12 +62,32 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
+
+function getAutoPath(){
+    var x;
+    //if((Math.abs(snake[0][0]-apple[0]))<((snake[0][0])+((canvasWidth/squareHeight)-apple[0]))){x=((snake[0][0])+((canvasWidth/squareHeight)-apple[0]))}
+    //else if((Math.abs(snake[0][0]-apple[0]))<((canvasWidth/squareHeight)-snake[0][0])+(apple[0])){x=((canvasWidth/squareHeight)-snake[0][0])+(apple[0])}
+    /*else*/ {x=snake[0][0]-apple[0];}
+    var y=snake[0][1]-apple[1];
+    for(i=0;i<Math.abs(x);i++){
+        (x<0)?autoPath.push(3):autoPath.push(2); //add x direction
+    }
+    for(i=0;i<Math.abs(y);i++){
+        (y<0)?autoPath.push(1):autoPath.push(0); //add y direction
+    }
+}
+
+auto&&getAutoPath(); //initial auto run
+
 //main game loop
 function loop(){
     var now = Date.now();
     if(snake[0][0]==apple[0]&&snake[0][1]==apple[1]) { appleEat=true; }
 
     if((now-start)>=speed){
+
+        (auto&&autoPath.length>0) && (direction=autoPath.shift()); //enabling automatic mode
+
         if(direction==1){
             snake.unshift([snake[0][0], snake[0][1]+1]);
         }
@@ -108,6 +136,7 @@ function loop(){
                 }
             }
             apple=[ax, ay];
+            auto&&getAutoPath(); //get new auto path
         } else{
             snake.pop();
         }
@@ -118,7 +147,7 @@ function loop(){
 
 //handling keypresses
 addEventListener("keydown", (event) => {
-    if (event.isComposing || event.keyCode === 229) {
+    if (event.isComposing || event.keyCode === 229 || auto) {
         return;
     }
     if(event.keyCode==37){ direction=2; }//turn left
